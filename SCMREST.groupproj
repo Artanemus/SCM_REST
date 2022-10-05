@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{0004B067-30DC-44B3-9E44-A4F52C4B0E78}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="STANDALONE\SCM_REST_StandAlone.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ISAP\SCM_REST.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CLIENT\SCM_Client.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="SCM_REST_StandAlone">
+        <MSBuild Projects="STANDALONE\SCM_REST_StandAlone.dproj"/>
+    </Target>
+    <Target Name="SCM_REST_StandAlone:Clean">
+        <MSBuild Projects="STANDALONE\SCM_REST_StandAlone.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SCM_REST_StandAlone:Make">
+        <MSBuild Projects="STANDALONE\SCM_REST_StandAlone.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SCM_REST">
+        <MSBuild Projects="ISAP\SCM_REST.dproj"/>
+    </Target>
+    <Target Name="SCM_REST:Clean">
+        <MSBuild Projects="ISAP\SCM_REST.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SCM_REST:Make">
+        <MSBuild Projects="ISAP\SCM_REST.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SCM_Client">
+        <MSBuild Projects="CLIENT\SCM_Client.dproj"/>
+    </Target>
+    <Target Name="SCM_Client:Clean">
+        <MSBuild Projects="CLIENT\SCM_Client.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SCM_Client:Make">
+        <MSBuild Projects="CLIENT\SCM_Client.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SCM_REST_StandAlone;SCM_REST;SCM_Client"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SCM_REST_StandAlone:Clean;SCM_REST:Clean;SCM_Client:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SCM_REST_StandAlone:Make;SCM_REST:Make;SCM_Client:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
