@@ -141,7 +141,7 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="..\STANDALONE\modeWeb.pas">
+        <DCCReference Include="..\STANDALONE\modWeb.pas">
             <Form>scmWeb</Form>
             <FormType>dfm</FormType>
             <DesignClass>TWebModule</DesignClass>

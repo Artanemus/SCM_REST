@@ -5,10 +5,11 @@ interface
 uses
   Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.AppEvnts, Vcl.StdCtrls, IdHTTPWebBrokerBridge, IdGlobal, Web.HTTPApp;
+  Vcl.AppEvnts, Vcl.StdCtrls, IdHTTPWebBrokerBridge, IdGlobal, Web.HTTPApp,
+  modWeb;
 
 type
-  TForm1 = class(TForm)
+  TMain = class(TForm)
     ButtonStart: TButton;
     ButtonStop: TButton;
     EditPort: TEdit;
@@ -29,7 +30,7 @@ type
   end;
 
 var
-  Form1: TForm1;
+  Main: TMain;
 
 implementation
 
@@ -38,14 +39,14 @@ implementation
 uses
   WinApi.Windows, Winapi.ShellApi;
 
-procedure TForm1.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+procedure TMain.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
 begin
   ButtonStart.Enabled := not FServer.Active;
   ButtonStop.Enabled := FServer.Active;
   EditPort.Enabled := not FServer.Active;
 end;
 
-procedure TForm1.ButtonOpenBrowserClick(Sender: TObject);
+procedure TMain.ButtonOpenBrowserClick(Sender: TObject);
 var
   LURL: string;
 begin
@@ -56,23 +57,23 @@ begin
         PChar(LURL), nil, nil, SW_SHOWNOACTIVATE);
 end;
 
-procedure TForm1.ButtonStartClick(Sender: TObject);
+procedure TMain.ButtonStartClick(Sender: TObject);
 begin
   StartServer;
 end;
 
-procedure TForm1.ButtonStopClick(Sender: TObject);
+procedure TMain.ButtonStopClick(Sender: TObject);
 begin
   FServer.Active := False;
   FServer.Bindings.Clear;
 end;
 
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TMain.FormCreate(Sender: TObject);
 begin
   FServer := TIdHTTPWebBrokerBridge.Create(Self);
 end;
 
-procedure TForm1.StartServer;
+procedure TMain.StartServer;
 begin
   if not FServer.Active then
   begin

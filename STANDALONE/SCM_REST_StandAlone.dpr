@@ -5,8 +5,8 @@ uses
   Vcl.Forms,
   Web.WebReq,
   IdHTTPWebBrokerBridge,
-  frmMain in 'frmMain.pas' {Form1},
-  modeWeb in 'modeWeb.pas' {scmWeb: TWebModule};
+  frmMain in 'frmMain.pas' {Main},
+  modWeb in 'modWeb.pas' {scmWeb: TWebModule};
 
 {$R *.res}
 
@@ -14,6 +14,6 @@ begin
   if WebRequestHandler <> nil then
     WebRequestHandler.WebModuleClass := WebModuleClass;
   Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TMain, Main);
   Application.Run;
 end.
