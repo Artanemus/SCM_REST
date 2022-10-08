@@ -2,12 +2,6 @@
 Coordinates=280,160,96,33
 Visible=False
 
-[RESTClient]
-Coordinates=30,20,91,123
-
-[RESTRequest]
-Coordinates=140,20,82,87
-
 [Header]
 Coordinates=140,210,49,33
 
@@ -16,9 +10,6 @@ Coordinates=30,460,76,51
 
 [Button1]
 Coordinates=130,460,53,51
-
-[RESTResponse]
-Coordinates=240,20,91,303
 
 [Footer]
 Coordinates=140,170,46,33
@@ -59,4 +50,13 @@ Coordinates=81,162,53,51
 
 [Button3]
 Coordinates=22,162,53,51
+
+[RESTClientSess]
+Coordinates=30,20,91,123
+
+[RESTRequestSess]
+Coordinates=140,20,82,87
+
+[RESTResponseSess]
+Coordinates=240,20,91,303
 

@@ -12,22 +12,31 @@ uses
 
 type
   TscmWeb = class(TWebModule)
-    qrySessions: TFDQuery;
-    qryEvents: TFDQuery;
+    qrySession: TFDQuery;
+    qryEvent: TFDQuery;
     scmRAW: TFDConnection;
+    qryHeat: TFDQuery;
     procedure WebModDefaultHandlerAction(Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean);
     procedure WebSessionsAction(Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean);
-    procedure WebEventAction(Sender: TObject; Request: TWebRequest;
+    procedure WebEventsAction(Sender: TObject; Request: TWebRequest;
+      Response: TWebResponse; var Handled: Boolean);
+    procedure WebHeatsAction(Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean);
   private
     { Private declarations }
+    function GetDataSetSessions(const SessionID: integer): TFDJSONDataSets;
+    function GetDataSetEvents(const SessionID: integer;
+      const EventID: integer): TFDJSONDataSets;
+    function GetDataSetHeats(const EventID: integer; const HeatID: integer)
+      : TFDJSONDataSets;
+
     procedure SessionsGet(Request: TWebRequest; Response: TWebResponse);
     procedure EventsGet(Request: TWebRequest; Response: TWebResponse);
+    procedure HeatsGet(Request: TWebRequest; Response: TWebResponse);
   public
     { Public declarations }
-    function GetSessions(const AID: string): TFDJSONDataSets;
   end;
 
 var
@@ -43,6 +52,8 @@ uses
 
 const
   sSessions = 'Sessions';
+  sEvents = 'Events';
+  sHeats = 'Heats';
 
 procedure TscmWeb.EventsGet(Request: TWebRequest; Response: TWebResponse);
 var
@@ -50,44 +61,63 @@ var
   o: TJSONObject;
   i: integer;
 begin
-  if qryEvents.Active then
-    qryEvents.Close;
+  if qryEvent.Active then
+    qryEvent.Close;
   i := 0;
+
+  // --------------------------------------------------------
+  // Example web query:
+  // --------------------------------------------------------
+  // events?sessionid=53&eventid=126   - for a specific event
+  // events?sesionid=53&eventid=0   - for all event
+
   // load query parameters
   if Request.QueryFields.Count > 0 then
   begin
     // asked for a specific Event
-    i := StrToIntDef(Request.QueryFields.Values['sessid'], 0);
-    qryEvents.Params.ParamByName('SESSIONID').AsInteger := i;
-  end;
-
-  if (i = 0) then
-  begin
-    // ERROR ....
+    i := StrToIntDef(Request.QueryFields.Values['sessionid'], 0);
+    if (i = 0) then
+    begin
+      // ERROR ....
+      // TODO: offer a explanation for the error to the caller
       Response.StatusCode := 400; // bad request error code
       Response.SendResponse;
+      exit;
+    end
+    else
+      qryEvent.Params.ParamByName('SESSIONID').AsInteger := i;
   end;
 
-  qryEvents.Prepare;
-  qryEvents.Open;
-  if qryEvents.Active then
+  if Request.QueryFields.Count > 1 then
   begin
-    if qryEvents.RecordCount > 0 then
+    i := StrToIntDef(Request.QueryFields.Values['eventid'], 0);
+    // if no heatid is given - get all heats for event.
+    qryEvent.Params.ParamByName('EVENTID').AsInteger := i;
+  end
+  else
+    qryEvent.Params.ParamByName('EVENTID').AsInteger := 0;
+
+
+  qryEvent.Prepare;
+  qryEvent.Open;
+  if qryEvent.Active then
+  begin
+    if qryEvent.RecordCount > 0 then
     begin
       a := TJSONArray.Create;
       try
-        qryEvents.First;
-        while (not qryEvents.Eof) do
+        qryEvent.First;
+        while (not qryEvent.Eof) do
         begin
           o := TJSONObject.Create;
           o.AddPair('EventID',
-            TJSONNumber.Create(qryEvents.FieldByName('EventID').AsInteger));
+            TJSONNumber.Create(qryEvent.FieldByName('EventID').AsInteger));
           o.AddPair('EventStr',
-            TJSONString.Create(qryEvents.FieldByName('EventStr').AsString));
+            TJSONString.Create(qryEvent.FieldByName('EventStr').AsString));
           o.AddPair('DistStrokeStr',
-            TJSONString.Create(qryEvents.FieldByName('DistStrokeStr').AsString));
+            TJSONString.Create(qryEvent.FieldByName('DistStrokeStr').AsString));
           a.AddElement(o);
-          qryEvents.Next;
+          qryEvent.Next;
         end;
       finally
         Response.ContentType := 'application/json';
@@ -97,20 +127,136 @@ begin
   end
 end;
 
-function TscmWeb.GetSessions(const AID: string): TFDJSONDataSets;
+function TscmWeb.GetDataSetEvents(const SessionID: integer;
+  const EventID: integer): TFDJSONDataSets;
 begin
   // Clear active so that query will reexecute.
-  qrySessions.Active := False;
-  qrySessions.ParamByName('SESSIONID').AsInteger := StrToIntDef(AID, 0);
-
+  qryEvent.Active := False;
+  // valid ID required else empty dataset
+  qryEvent.ParamByName('SESSIONID').AsInteger := SessionID;
+  // EventID=0 ... show all events
+  qryEvent.ParamByName('EVENTID').AsInteger := EventID;
   // Create dataset list
   Result := TFDJSONDataSets.Create;
   // Add session(s) dataset
-  TFDJSONDataSetsWriter.ListAdd(Result, sSessions, qrySessions);
+  TFDJSONDataSetsWriter.ListAdd(Result, sSessions, qryEvent);
 end;
 
-procedure TscmWeb.WebSessionsAction(Sender: TObject;
-  Request: TWebRequest; Response: TWebResponse; var Handled: Boolean);
+function TscmWeb.GetDataSetHeats(const EventID: integer;
+  const HeatID: integer): TFDJSONDataSets;
+begin
+  // Clear active so that query will reexecute.
+  qryHeat.Active := False;
+  // valid ID required else empty dataset
+  qryHeat.ParamByName('EVENTID').AsInteger := EventID;
+  // HeatID=0 ... show all heats
+  qryHeat.ParamByName('HEATID').AsInteger := HeatID;
+  // Create dataset list
+  Result := TFDJSONDataSets.Create;
+  // Add session(s) dataset
+  TFDJSONDataSetsWriter.ListAdd(Result, sSessions, qryHeat);
+
+end;
+
+function TscmWeb.GetDataSetSessions(const SessionID: integer)
+  : TFDJSONDataSets;
+begin
+  // Clear active so that query will reexecute.
+  qrySession.Active := False;
+  // SessionID=0 ... show all sessions
+  qrySession.ParamByName('SESSIONID').AsInteger := SessionID;
+  // Create dataset list
+  Result := TFDJSONDataSets.Create;
+  // Add session(s) dataset
+  TFDJSONDataSetsWriter.ListAdd(Result, sSessions, qrySession);
+end;
+
+procedure TscmWeb.HeatsGet(Request: TWebRequest; Response: TWebResponse);
+var
+  a: TJSONArray;
+  o: TJSONObject;
+  i: integer;
+begin
+  if qryHeat.Active then
+    qryHeat.Close;
+  i := 0;
+  // --------------------------------------------------------
+  // Example web query:
+  // --------------------------------------------------------
+  // heats?eventid=53&heatid=126   - for a specific heat
+  // heats?eventid=53&heatid=0   - for all heats in event
+
+  // PART 1 :find  SwimClubMeet.dbo.Event.EventID
+  if Request.QueryFields.Count > 0 then
+  begin
+    // Asked for a specific Event. If the named value is empty, i = 0;
+    i := StrToIntDef(Request.QueryFields.Values['eventid'], 0);
+    // if no eventid is given - then the request can't be performed.
+    if (i = 0) then
+    begin
+      // ERROR ....
+      // TODO: offer a explanation for the error to the caller
+      Response.StatusCode := 400; // bad request error code
+      Response.SendResponse;
+      exit;
+    end
+    else
+      qryHeat.Params.ParamByName('EVENTID').AsInteger := i;
+  end;
+
+  // PART TWO :find  SwimClubMeet.dbo.Heat.HeatID
+  // Asked for a specific Heat :: if the named value is empty, i = 0;
+  if Request.QueryFields.Count > 1 then
+  begin
+    i := StrToIntDef(Request.QueryFields.Values['heatid'], 0);
+    // if no heatid is given - get all heats for event.
+    qryHeat.Params.ParamByName('HEATID').AsInteger := i;
+  end
+  else
+    qryHeat.Params.ParamByName('HEATID').AsInteger := 0;
+
+  qryHeat.Prepare;
+  qryHeat.Open;
+  if qryHeat.Active then
+  begin
+    if qryHeat.RecordCount > 0 then
+    begin
+      a := TJSONArray.Create;
+      try
+        qryHeat.First;
+        while (not qryHeat.Eof) do
+
+(*
+  SELECT [HeatIndividual].[HeatID]
+         , [HeatNum]
+         , Lane
+         --, Entrant.MemberID
+         , dbo.SwimTimeToString(Entrant.RaceTime) AS RaceTime
+         , CONCAT(Member.FirstName, ' ', UPPER(Member.LastName)) AS FName
+*)
+        begin
+          o := TJSONObject.Create;
+          o.AddPair('HeatID', TJSONNumber.Create(qryHeat.FieldByName('HeatID')
+            .AsInteger));
+          o.AddPair('HeatNum', TJSONNumber.Create(qryHeat.FieldByName('HeatNum')
+            .AsInteger));
+          o.AddPair('FName',
+            TJSONString.Create(qryHeat.FieldByName('FName').AsString));
+          o.AddPair('RaceTime',
+            TJSONString.Create(qryHeat.FieldByName('RaceTime').AsString));
+          a.AddElement(o);
+          qryHeat.Next;
+        end;
+      finally
+        Response.ContentType := 'application/json';
+        Response.Content := a.ToString;
+      end;
+    end;
+  end
+end;
+
+procedure TscmWeb.WebSessionsAction(Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean);
 begin
   Handled := true;
   case Request.MethodType of
@@ -136,42 +282,49 @@ var
   o: TJSONObject;
   i: integer;
 begin
-  if qrySessions.Active then
-    qrySessions.Close;
+  if qrySession.Active then
+    qrySession.Close;
   i := 0;
+
+  // --------------------------------------------------------
+  // Example web query:
+  // --------------------------------------------------------
+  // sessions?sessionid=53 - for a specific session
+  // sessions?sessionid=0  - for all sessions
+
   // load query parameters
   if Request.QueryFields.Count > 0 then
   begin
     // asked for a specific session
-    // i := StrToIntDef(Request.QueryFields.Values['sessid'], 0);
-    qrySessions.Params.ParamByName('SESSIONID').AsInteger := i;
+    i := StrToIntDef(Request.QueryFields.Values['sessionid'], 0);
+    qrySession.Params.ParamByName('SESSIONID').AsInteger := i;
   end
   else
   begin
     // asked to show all sessions
-    qrySessions.Params.ParamByName('SESSIONID').AsInteger := 0;
+    qrySession.Params.ParamByName('SESSIONID').AsInteger := 0;
   end;
 
-  qrySessions.Prepare;
-  qrySessions.Open;
-  if qrySessions.Active then
+  qrySession.Prepare;
+  qrySession.Open;
+  if qrySession.Active then
   begin
-    if qrySessions.RecordCount > 0 then
+    if qrySession.RecordCount > 0 then
     begin
       a := TJSONArray.Create;
       try
-        qrySessions.First;
-        while (not qrySessions.Eof) do
+        qrySession.First;
+        while (not qrySession.Eof) do
         begin
           o := TJSONObject.Create;
           o.AddPair('SessionID',
-            TJSONNumber.Create(qrySessions.FieldByName('SessionID').AsInteger));
+            TJSONNumber.Create(qrySession.FieldByName('SessionID').AsInteger));
           o.AddPair('Caption',
-            TJSONString.Create(qrySessions.FieldByName('Caption').AsString));
+            TJSONString.Create(qrySession.FieldByName('Caption').AsString));
           o.AddPair('DateStr',
-            TJSONString.Create(qrySessions.FieldByName('DateStr').AsString));
+            TJSONString.Create(qrySession.FieldByName('DateStr').AsString));
           a.AddElement(o);
-          qrySessions.Next;
+          qrySession.Next;
         end;
       finally
         Response.ContentType := 'application/json';
@@ -181,7 +334,7 @@ begin
   end
 end;
 
-procedure TscmWeb.WebEventAction(Sender: TObject; Request: TWebRequest;
+procedure TscmWeb.WebEventsAction(Sender: TObject; Request: TWebRequest;
   Response: TWebResponse; var Handled: Boolean);
 begin
   Handled := true;
@@ -189,6 +342,27 @@ begin
     // mtAny: ;
     mtGet:
       EventsGet(Request, Response);
+    // mtPut: SessionsPut(Request, Response);
+    // mtPost: ;
+    // mtHead: ;
+    // mtDelete: ;
+    // mtPatch: ;
+  else
+    begin
+      Response.StatusCode := 400; // bad request error code
+      Response.SendResponse;
+    end;
+  end;
+end;
+
+procedure TscmWeb.WebHeatsAction(Sender: TObject; Request: TWebRequest;
+  Response: TWebResponse; var Handled: Boolean);
+begin
+  Handled := true;
+  case Request.MethodType of
+    // mtAny: ;
+    mtGet:
+      HeatsGet(Request, Response);
     // mtPut: SessionsPut(Request, Response);
     // mtPost: ;
     // mtHead: ;

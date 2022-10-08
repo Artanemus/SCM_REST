@@ -3,19 +3,19 @@ object HeaderFooterForm: THeaderFooterForm
   Top = 0
   Caption = 'Header Footer Form'
   ClientHeight = 567
-  ClientWidth = 367
+  ClientWidth = 969
   FormFactor.Width = 1440
   FormFactor.Height = 900
   FormFactor.Devices = [Desktop]
   DesignerMasterStyle = 0
   object Header: TToolBar
-    Size.Width = 367.000000000000000000
+    Size.Width = 969.000000000000000000
     Size.Height = 48.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 0
     object HeaderLabel: TLabel
       Align = Contents
-      Size.Width = 367.000000000000000000
+      Size.Width = 969.000000000000000000
       Size.Height = 48.000000000000000000
       Size.PlatformDefault = False
       StyleLookup = 'toollabel'
@@ -26,7 +26,7 @@ object HeaderFooterForm: THeaderFooterForm
   object Footer: TToolBar
     Align = Bottom
     Position.Y = 519.000000000000000000
-    Size.Width = 367.000000000000000000
+    Size.Width = 969.000000000000000000
     Size.Height = 48.000000000000000000
     Size.PlatformDefault = False
     StyleLookup = 'bottomtoolbar'
@@ -54,58 +54,62 @@ object HeaderFooterForm: THeaderFooterForm
   end
   object Layout1: TLayout
     Align = Client
-    Size.Width = 367.000000000000000000
+    Size.Width = 969.000000000000000000
     Size.Height = 471.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 13
     object StringGrid2: TStringGrid
-      Align = Client
+      Align = Left
       CanFocus = True
       ClipChildren = True
-      Size.Width = 367.000000000000000000
+      Size.Width = 433.000000000000000000
       Size.Height = 471.000000000000000000
       Size.PlatformDefault = False
       TabOrder = 0
-      RowCount = 0
+      RowCount = 12
       Options = [AlternatingRowBackground, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
-      Viewport.Width = 363.000000000000000000
-      Viewport.Height = 446.000000000000000000
+      Viewport.Width = 429.000000000000000000
+      Viewport.Height = 430.000000000000000000
     end
   end
-  object RESTClient: TRESTClient
+  object RESTClientSess: TRESTClient
     Accept = 'application/json, text/plain; q=0.9, text/html;q=0.8,'
     AcceptCharset = 'utf-8, *;q=0.8'
-    BaseURL = 'http://localHost:8080'
-    Params = <
+    BaseURL = 'http://localhost:8080/Sessions'
+    Params = <>
+    Left = 560
+    Top = 88
+  end
+  object RESTRequestSess: TRESTRequest
+    Client = RESTClientSess
+    Params = <>
+    Response = RESTResponseSess
+    Left = 648
+    Top = 88
+  end
+  object RESTResponseSess: TRESTResponse
+    ContentType = 'application/json'
+    Left = 752
+    Top = 88
+  end
+  object FDMemSessions: TFDMemTable
+    Active = True
+    FieldDefs = <
       item
         Name = 'SessionID'
-        Value = 'SessionID'
+        DataType = ftWideString
+        Size = 255
       end
       item
         Name = 'Caption'
-        Value = 'Caption'
+        DataType = ftWideString
+        Size = 255
       end
       item
         Name = 'DateStr'
-        Value = 'DateStr'
+        DataType = ftWideString
+        Size = 255
       end>
-    Left = 136
-    Top = 448
-  end
-  object RESTRequest: TRESTRequest
-    Client = RESTClient
-    Params = <>
-    Resource = 'sessions'
-    Response = RESTResponse
-    Left = 208
-    Top = 448
-  end
-  object RESTResponse: TRESTResponse
-    Left = 296
-    Top = 448
-  end
-  object FDMemSessions: TFDMemTable
-    FieldDefs = <>
     IndexDefs = <>
     IndexFieldNames = 'SessionID'
     FetchOptions.AssignedValues = [evMode]
@@ -134,9 +138,10 @@ object HeaderFooterForm: THeaderFooterForm
     end
   end
   object RESTResponseDataSetAdapter1: TRESTResponseDataSetAdapter
+    Active = True
     Dataset = FDMemSessions
     FieldDefs = <>
-    Response = RESTResponse
+    Response = RESTResponseSess
     Left = 56
     Top = 360
   end

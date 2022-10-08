@@ -20,9 +20,9 @@ type
     Header: TToolBar;
     Footer: TToolBar;
     HeaderLabel: TLabel;
-    RESTClient: TRESTClient;
-    RESTRequest: TRESTRequest;
-    RESTResponse: TRESTResponse;
+    RESTClientSess: TRESTClient;
+    RESTRequestSess: TRESTRequest;
+    RESTResponseSess: TRESTResponse;
     Button1: TButton;
     FDMemSessions: TFDMemTable;
     RESTResponseDataSetAdapter1: TRESTResponseDataSetAdapter;
@@ -57,7 +57,7 @@ implementation
 
 procedure THeaderFooterForm.Button1Click(Sender: TObject);
 begin
-  RESTRequest.Execute;
+  RESTRequestSess.Execute;
 end;
 
 procedure THeaderFooterForm.Button2Click(Sender: TObject);
@@ -67,7 +67,7 @@ begin
   // get the session id from the string grid
   //StringGrid2.
   i  := BindSourceDB1.DataSet.FieldByName('SessionID').AsInteger;
-  REST
+
 end;
 
 procedure THeaderFooterForm.GetSessions;
