@@ -324,7 +324,7 @@
         </DelphiCompile>
         <DCCReference Include="frmClientMain.pas">
             <FormDeviceName>iPhone</FormDeviceName>
-            <Form>HeaderFooterForm</Form>
+            <Form>ClientMain</Form>
             <FormType>fmx</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

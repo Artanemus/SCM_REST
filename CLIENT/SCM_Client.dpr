@@ -3,12 +3,12 @@ program SCM_Client;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  frmClientMain in 'frmClientMain.pas' {HeaderFooterForm};
+  frmClientMain in 'frmClientMain.pas' {ClientMain};
 
 {$R *.res}
 
 begin
   Application.Initialize;
-  Application.CreateForm(THeaderFooterForm, HeaderFooterForm);
+  Application.CreateForm(TClientMain, ClientMain);
   Application.Run;
 end.

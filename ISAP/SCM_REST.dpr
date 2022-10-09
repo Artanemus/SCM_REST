@@ -6,7 +6,8 @@ uses
   Web.WebBroker,
   Web.Win.ISAPIApp,
   Web.Win.ISAPIThreadPool,
-  modWeb in '..\STANDALONE\modWeb.pas' {scmWeb: TWebModule};
+  modWeb in '..\STANDALONE\modWeb.pas' {scmWeb: TWebModule},
+  Utility in '..\STANDALONE\Utility.pas';
 
 {$R *.res}
 

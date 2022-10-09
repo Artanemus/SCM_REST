@@ -1,5 +1,6 @@
 object scmWeb: TscmWeb
   OldCreateOrder = False
+  OnCreate = WebModuleCreate
   Actions = <
     item
       Default = True
@@ -23,9 +24,9 @@ object scmWeb: TscmWeb
       OnAction = WebHeatsAction
     end>
   Height = 524
-  Width = 675
+  Width = 531
   object qrySession: TFDQuery
-    Connection = scmRAW
+    Connection = scmConnection
     UpdateOptions.AssignedValues = [uvEDelete, uvEInsert, uvEUpdate]
     UpdateOptions.EnableDelete = False
     UpdateOptions.EnableInsert = False
@@ -71,7 +72,7 @@ object scmWeb: TscmWeb
       end>
   end
   object qryEvent: TFDQuery
-    Connection = scmRAW
+    Connection = scmConnection
     UpdateOptions.AssignedValues = [uvEDelete, uvEInsert, uvEUpdate]
     UpdateOptions.EnableDelete = False
     UpdateOptions.EnableInsert = False
@@ -132,7 +133,7 @@ object scmWeb: TscmWeb
         Value = 0
       end>
   end
-  object scmRAW: TFDConnection
+  object scmConnection: TFDConnection
     Params.Strings = (
       'Database=SwimClubMeet'
       'DriverID=MSSQL'
@@ -147,7 +148,7 @@ object scmWeb: TscmWeb
     Top = 96
   end
   object qryHeat: TFDQuery
-    Connection = scmRAW
+    Connection = scmConnection
     UpdateOptions.AssignedValues = [uvEDelete, uvEInsert, uvEUpdate]
     UpdateOptions.EnableDelete = False
     UpdateOptions.EnableInsert = False

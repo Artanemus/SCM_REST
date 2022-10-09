@@ -1,4 +1,4 @@
-object HeaderFooterForm: THeaderFooterForm
+object ClientMain: TClientMain
   Left = 0
   Top = 0
   Caption = 'Header Footer Form'
@@ -7,6 +7,7 @@ object HeaderFooterForm: THeaderFooterForm
   FormFactor.Width = 1440
   FormFactor.Height = 900
   FormFactor.Devices = [Desktop]
+  OnCreate = FormCreate
   DesignerMasterStyle = 0
   object Header: TToolBar
     Size.Width = 969.000000000000000000
@@ -31,25 +32,26 @@ object HeaderFooterForm: THeaderFooterForm
     Size.PlatformDefault = False
     StyleLookup = 'bottomtoolbar'
     TabOrder = 1
-    object Button1: TButton
+    object btnSession: TButton
       Position.X = 39.000000000000000000
       Position.Y = 13.000000000000000000
       TabOrder = 2
       Text = 'Session'
-      OnClick = Button1Click
+      OnClick = btnSessionClick
     end
-    object Button2: TButton
+    object btnEvent: TButton
       Position.X = 143.000000000000000000
       Position.Y = 13.000000000000000000
       TabOrder = 1
       Text = 'Event'
-      OnClick = Button2Click
+      OnClick = btnEventClick
     end
-    object Button3: TButton
+    object btnHeat: TButton
       Position.X = 247.000000000000000000
       Position.Y = 13.000000000000000000
       TabOrder = 0
       Text = 'Heat'
+      OnClick = btnHeatClick
     end
   end
   object Layout1: TLayout
@@ -58,18 +60,96 @@ object HeaderFooterForm: THeaderFooterForm
     Size.Height = 471.000000000000000000
     Size.PlatformDefault = False
     TabOrder = 13
-    object StringGrid2: TStringGrid
+    object TabControl: TTabControl
       Align = Left
-      CanFocus = True
-      ClipChildren = True
-      Size.Width = 433.000000000000000000
+      Size.Width = 457.000000000000000000
       Size.Height = 471.000000000000000000
       Size.PlatformDefault = False
+      TabIndex = 1
       TabOrder = 0
-      RowCount = 12
-      Options = [AlternatingRowBackground, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
-      Viewport.Width = 429.000000000000000000
-      Viewport.Height = 430.000000000000000000
+      TabPosition = PlatformDefault
+      Sizes = (
+        457s
+        445s
+        457s
+        445s
+        457s
+        445s)
+      object tabSession: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = False
+        Size.Width = 65.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'Sessions'
+        object strGridSessions: TStringGrid
+          Align = Client
+          CanFocus = True
+          ClipChildren = True
+          Size.Width = 457.000000000000000000
+          Size.Height = 445.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          RowCount = 12
+          Options = [AlternatingRowBackground, ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, AlwaysShowSelection, Tabs, Header, HeaderClick, AutoDisplacement]
+          Viewport.Width = 453.000000000000000000
+          Viewport.Height = 420.000000000000000000
+        end
+      end
+      object tabEvents: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = True
+        Size.Width = 55.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'Events'
+        object strGridEvents: TStringGrid
+          Align = Client
+          CanFocus = True
+          ClipChildren = True
+          Size.Width = 457.000000000000000000
+          Size.Height = 445.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          RowCount = 8
+          Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, Tabs, Header, HeaderClick, AutoDisplacement]
+          Viewport.Width = 453.000000000000000000
+          Viewport.Height = 420.000000000000000000
+        end
+      end
+      object tabHeat: TTabItem
+        CustomIcon = <
+          item
+          end>
+        IsSelected = False
+        Size.Width = 51.000000000000000000
+        Size.Height = 26.000000000000000000
+        Size.PlatformDefault = False
+        StyleLookup = ''
+        TabOrder = 0
+        Text = 'Heats'
+        object strGridHeats: TStringGrid
+          Align = Client
+          CanFocus = True
+          ClipChildren = True
+          Size.Width = 457.000000000000000000
+          Size.Height = 445.000000000000000000
+          Size.PlatformDefault = False
+          TabOrder = 0
+          RowCount = 12
+          Options = [ColumnResize, ColumnMove, ColLines, RowLines, RowSelect, Tabs, Header, HeaderClick, AutoDisplacement]
+          Viewport.Width = 453.000000000000000000
+          Viewport.Height = 420.000000000000000000
+        end
+      end
     end
   end
   object RESTClientSess: TRESTClient
@@ -77,20 +157,20 @@ object HeaderFooterForm: THeaderFooterForm
     AcceptCharset = 'utf-8, *;q=0.8'
     BaseURL = 'http://localhost:8080/Sessions'
     Params = <>
-    Left = 560
-    Top = 88
+    Left = 608
+    Top = 208
   end
   object RESTRequestSess: TRESTRequest
     Client = RESTClientSess
     Params = <>
     Response = RESTResponseSess
-    Left = 648
-    Top = 88
+    Left = 728
+    Top = 208
   end
   object RESTResponseSess: TRESTResponse
     ContentType = 'application/json'
-    Left = 752
-    Top = 88
+    Left = 832
+    Top = 208
   end
   object FDMemSessions: TFDMemTable
     Active = True
@@ -111,6 +191,13 @@ object HeaderFooterForm: THeaderFooterForm
         Size = 255
       end>
     IndexDefs = <>
+    Indexes = <
+      item
+        Active = True
+        Selected = True
+        Name = 'idxSess'
+        Fields = 'SessionID'
+      end>
     IndexFieldNames = 'SessionID'
     FetchOptions.AssignedValues = [evMode]
     FetchOptions.Mode = fmAll
@@ -122,8 +209,8 @@ object HeaderFooterForm: THeaderFooterForm
     UpdateOptions.CheckRequired = False
     UpdateOptions.AutoCommitUpdates = True
     StoreDefs = True
-    Left = 56
-    Top = 408
+    Left = 608
+    Top = 256
     object FDMemSessionsSessionID: TWideStringField
       FieldName = 'SessionID'
       Size = 255
@@ -137,34 +224,34 @@ object HeaderFooterForm: THeaderFooterForm
       Size = 255
     end
   end
-  object RESTResponseDataSetAdapter1: TRESTResponseDataSetAdapter
+  object RESTResponseAdapterSess: TRESTResponseDataSetAdapter
     Active = True
     Dataset = FDMemSessions
     FieldDefs = <>
     Response = RESTResponseSess
-    Left = 56
-    Top = 360
+    Left = 728
+    Top = 256
   end
-  object DataSource1: TDataSource
+  object DSSessions: TDataSource
     DataSet = FDMemSessions
-    Left = 56
-    Top = 456
+    Left = 608
+    Top = 304
   end
-  object BindSourceDB1: TBindSourceDB
+  object BindSourceSess: TBindSourceDB
     DataSet = FDMemSessions
     ScopeMappings = <>
-    Left = 296
-    Top = 392
+    Left = 512
+    Top = 256
   end
   object BindingsList1: TBindingsList
     Methods = <>
     OutputConverters = <>
-    Left = 204
-    Top = 389
+    Left = 188
+    Top = 5
     object LinkGridToDataSourceBindSourceDB1: TLinkGridToDataSource
       Category = 'Quick Bindings'
-      DataSource = BindSourceDB1
-      GridControl = StringGrid2
+      DataSource = BindSourceSess
+      GridControl = strGridSessions
       Columns = <
         item
           MemberName = 'SessionID'
@@ -180,7 +267,229 @@ object HeaderFooterForm: THeaderFooterForm
         item
           MemberName = 'Caption'
           Header = 'Short Description'
+          TextWidth = 30
         end>
     end
+    object LinkGridToDataSourceBindSourceDB12: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = BindSourceEv
+      GridControl = strGridEvents
+      Columns = <
+        item
+          MemberName = 'EventID'
+          Header = 'ID'
+          TextWidth = 5
+        end
+        item
+          MemberName = 'EventNum'
+          Header = 'Ev#'
+          TextWidth = 5
+        end
+        item
+          MemberName = 'DistStrokeStr'
+          Header = 'Distance and Stroke'
+          TextWidth = 20
+        end
+        item
+          MemberName = 'EventStr'
+          Header = 'Event Description'
+          TextWidth = 30
+        end>
+    end
+    object LinkGridToDataSourceBindSourceDB13: TLinkGridToDataSource
+      Category = 'Quick Bindings'
+      DataSource = BindSourceHeat
+      GridControl = strGridHeats
+      Columns = <
+        item
+          MemberName = 'HeatID'
+          Header = 'ID'
+          TextWidth = 5
+          Visible = False
+        end
+        item
+          MemberName = 'HeatNum'
+          Header = 'Heat'
+          TextWidth = 5
+        end
+        item
+          MemberName = 'FName'
+          Header = 'Entrant'
+          TextWidth = 25
+        end
+        item
+          MemberName = 'RaceTime'
+          Header = 'Race Time'
+          TextWidth = 10
+        end>
+    end
+  end
+  object RESTClientEv: TRESTClient
+    Accept = 'application/json, text/plain; q=0.9, text/html;q=0.8,'
+    AcceptCharset = 'utf-8, *;q=0.8'
+    BaseURL = 'http://localhost:8080/Events'
+    Params = <>
+    Left = 608
+    Top = 48
+  end
+  object RESTRequestEv: TRESTRequest
+    Client = RESTClientEv
+    Params = <>
+    Response = RESTResponseEv
+    Left = 728
+    Top = 48
+  end
+  object RESTResponseEv: TRESTResponse
+    ContentType = 'application/json'
+    Left = 832
+    Top = 48
+  end
+  object FDMemEvents: TFDMemTable
+    Active = True
+    FieldDefs = <
+      item
+        Name = 'EventID'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'EventNum'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'EventStr'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'DistStrokeStr'
+        DataType = ftWideString
+        Size = 255
+      end>
+    IndexDefs = <>
+    Indexes = <
+      item
+        Active = True
+        Selected = True
+        Name = 'idxEventNum'
+        Fields = 'EventNum'
+      end>
+    IndexName = 'idxEventNum'
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvUpdateChngFields, uvUpdateMode, uvLockMode, uvLockPoint, uvLockWait, uvRefreshMode, uvFetchGeneratorsPoint, uvCheckRequired, uvCheckReadOnly, uvCheckUpdatable, uvAutoCommitUpdates]
+    UpdateOptions.LockWait = True
+    UpdateOptions.FetchGeneratorsPoint = gpNone
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    StoreDefs = True
+    Left = 608
+    Top = 96
+  end
+  object DSEvents: TDataSource
+    DataSet = FDMemEvents
+    Left = 608
+    Top = 144
+  end
+  object RESTResponseDSAdapterEv: TRESTResponseDataSetAdapter
+    Active = True
+    Dataset = FDMemEvents
+    FieldDefs = <>
+    Response = RESTResponseEv
+    Left = 728
+    Top = 96
+  end
+  object BindSourceEv: TBindSourceDB
+    DataSet = FDMemEvents
+    ScopeMappings = <>
+    Left = 512
+    Top = 96
+  end
+  object RESTClientHeat: TRESTClient
+    Accept = 'application/json, text/plain; q=0.9, text/html;q=0.8,'
+    AcceptCharset = 'utf-8, *;q=0.8'
+    BaseURL = 'http://localhost:8080/heats'
+    Params = <>
+    Left = 608
+    Top = 376
+  end
+  object RESTRequestHeat: TRESTRequest
+    Client = RESTClientHeat
+    Params = <>
+    Response = RESTResponseHeat
+    Left = 736
+    Top = 376
+  end
+  object RESTResponseHeat: TRESTResponse
+    ContentType = 'application/json'
+    Left = 840
+    Top = 376
+  end
+  object FDMemHeats: TFDMemTable
+    Active = True
+    FieldDefs = <
+      item
+        Name = 'HeatID'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'HeatNum'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'FName'
+        DataType = ftWideString
+        Size = 255
+      end
+      item
+        Name = 'RaceTime'
+        DataType = ftWideString
+        Size = 255
+      end>
+    IndexDefs = <>
+    Indexes = <
+      item
+        Active = True
+        Selected = True
+        Name = 'idxHeatNum'
+        Fields = 'HeatNum'
+      end>
+    IndexName = 'idxHeatNum'
+    FetchOptions.AssignedValues = [evMode]
+    FetchOptions.Mode = fmAll
+    ResourceOptions.AssignedValues = [rvSilentMode]
+    ResourceOptions.SilentMode = True
+    UpdateOptions.AssignedValues = [uvUpdateChngFields, uvUpdateMode, uvLockMode, uvLockPoint, uvLockWait, uvRefreshMode, uvFetchGeneratorsPoint, uvCheckRequired, uvCheckReadOnly, uvCheckUpdatable, uvAutoCommitUpdates]
+    UpdateOptions.LockWait = True
+    UpdateOptions.FetchGeneratorsPoint = gpNone
+    UpdateOptions.CheckRequired = False
+    UpdateOptions.AutoCommitUpdates = True
+    StoreDefs = True
+    Left = 608
+    Top = 424
+  end
+  object DSHeats: TDataSource
+    DataSet = FDMemHeats
+    Left = 608
+    Top = 472
+  end
+  object RESTResponseAdapterHeat: TRESTResponseDataSetAdapter
+    Active = True
+    Dataset = FDMemHeats
+    FieldDefs = <>
+    Response = RESTResponseHeat
+    Left = 736
+    Top = 424
+  end
+  object BindSourceHeat: TBindSourceDB
+    DataSet = FDMemHeats
+    ScopeMappings = <>
+    Left = 1048
+    Top = 432
   end
 end

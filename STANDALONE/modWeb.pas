@@ -8,13 +8,13 @@ uses
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MSSQL, FireDAC.Phys.MSSQLDef, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt, Data.DB,
-  FireDAC.Comp.DataSet, FireDAC.Comp.Client, Data.FireDACJSONReflect;
+  FireDAC.Comp.DataSet, FireDAC.Comp.Client, Data.FireDACJSONReflect, Utility;
 
 type
   TscmWeb = class(TWebModule)
     qrySession: TFDQuery;
     qryEvent: TFDQuery;
-    scmRAW: TFDConnection;
+    scmConnection: TFDConnection;
     qryHeat: TFDQuery;
     procedure WebModDefaultHandlerAction(Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean);
@@ -24,17 +24,23 @@ type
       Response: TWebResponse; var Handled: Boolean);
     procedure WebHeatsAction(Sender: TObject; Request: TWebRequest;
       Response: TWebResponse; var Handled: Boolean);
+    procedure WebModuleCreate(Sender: TObject);
   private
     { Private declarations }
     function GetDataSetSessions(const SessionID: integer): TFDJSONDataSets;
-    function GetDataSetEvents(const SessionID: integer;
-      const EventID: integer): TFDJSONDataSets;
+    function GetDataSetEvents(const SessionID: integer; const EventID: integer)
+      : TFDJSONDataSets;
     function GetDataSetHeats(const EventID: integer; const HeatID: integer)
       : TFDJSONDataSets;
 
     procedure SessionsGet(Request: TWebRequest; Response: TWebResponse);
     procedure EventsGet(Request: TWebRequest; Response: TWebResponse);
     procedure HeatsGet(Request: TWebRequest; Response: TWebResponse);
+    // added 22.10.09
+    procedure MakeTemporyFDConnection(Server, User, Password: string;
+      OsAuthent: Boolean);
+    procedure ConnectToIniFile(fn: string);
+
   public
     { Public declarations }
   end;
@@ -42,13 +48,16 @@ type
 var
   WebModuleClass: TComponentClass = TscmWeb;
 
+const
+  SCMCONFIGFILENAME = 'SCM_RESTConfig.ini';
+
 implementation
 
 {%CLASSGROUP 'Vcl.Controls.TControl'}
 {$R *.dfm}
 
 uses
-  System.jSON, REST.jSON;
+  System.jSON, REST.jSON, System.IniFiles, System.IOUtils, System.StrUtils;
 
 const
   sSessions = 'Sessions';
@@ -63,7 +72,6 @@ var
 begin
   if qryEvent.Active then
     qryEvent.Close;
-  i := 0;
 
   // --------------------------------------------------------
   // Example web query:
@@ -97,7 +105,6 @@ begin
   else
     qryEvent.Params.ParamByName('EVENTID').AsInteger := 0;
 
-
   qryEvent.Prepare;
   qryEvent.Open;
   if qryEvent.Active then
@@ -112,6 +119,8 @@ begin
           o := TJSONObject.Create;
           o.AddPair('EventID',
             TJSONNumber.Create(qryEvent.FieldByName('EventID').AsInteger));
+          o.AddPair('EventNum',
+            TJSONNumber.Create(qryEvent.FieldByName('EventNum').AsInteger));
           o.AddPair('EventStr',
             TJSONString.Create(qryEvent.FieldByName('EventStr').AsString));
           o.AddPair('DistStrokeStr',
@@ -142,8 +151,8 @@ begin
   TFDJSONDataSetsWriter.ListAdd(Result, sSessions, qryEvent);
 end;
 
-function TscmWeb.GetDataSetHeats(const EventID: integer;
-  const HeatID: integer): TFDJSONDataSets;
+function TscmWeb.GetDataSetHeats(const EventID: integer; const HeatID: integer)
+  : TFDJSONDataSets;
 begin
   // Clear active so that query will reexecute.
   qryHeat.Active := False;
@@ -158,8 +167,7 @@ begin
 
 end;
 
-function TscmWeb.GetDataSetSessions(const SessionID: integer)
-  : TFDJSONDataSets;
+function TscmWeb.GetDataSetSessions(const SessionID: integer): TFDJSONDataSets;
 begin
   // Clear active so that query will reexecute.
   qrySession.Active := False;
@@ -179,7 +187,6 @@ var
 begin
   if qryHeat.Active then
     qryHeat.Close;
-  i := 0;
   // --------------------------------------------------------
   // Example web query:
   // --------------------------------------------------------
@@ -226,22 +233,22 @@ begin
         qryHeat.First;
         while (not qryHeat.Eof) do
 
-(*
-  SELECT [HeatIndividual].[HeatID]
-         , [HeatNum]
-         , Lane
-         --, Entrant.MemberID
-         , dbo.SwimTimeToString(Entrant.RaceTime) AS RaceTime
-         , CONCAT(Member.FirstName, ' ', UPPER(Member.LastName)) AS FName
-*)
+        (*
+          SELECT [HeatIndividual].[HeatID]
+          , [HeatNum]
+          , Lane
+          --, Entrant.MemberID
+          , dbo.SwimTimeToString(Entrant.RaceTime) AS RaceTime
+          , CONCAT(Member.FirstName, ' ', UPPER(Member.LastName)) AS FName
+        *)
         begin
           o := TJSONObject.Create;
           o.AddPair('HeatID', TJSONNumber.Create(qryHeat.FieldByName('HeatID')
             .AsInteger));
           o.AddPair('HeatNum', TJSONNumber.Create(qryHeat.FieldByName('HeatNum')
             .AsInteger));
-          o.AddPair('FName',
-            TJSONString.Create(qryHeat.FieldByName('FName').AsString));
+          o.AddPair('FName', TJSONString.Create(qryHeat.FieldByName('FName')
+            .AsString));
           o.AddPair('RaceTime',
             TJSONString.Create(qryHeat.FieldByName('RaceTime').AsString));
           a.AddElement(o);
@@ -284,7 +291,6 @@ var
 begin
   if qrySession.Active then
     qrySession.Close;
-  i := 0;
 
   // --------------------------------------------------------
   // Example web query:
@@ -381,6 +387,133 @@ procedure TscmWeb.WebModDefaultHandlerAction(Sender: TObject;
 begin
   Response.Content := '<html>' + '<head><title>SCM REST Server</title></head>' +
     '<body>SwimClubMeet - Web Server Application</body>' + '</html>';
+end;
+
+(*
+  -----------------------------------------------
+  attempt a connection using a configuration file
+  -----------------------------------------------
+
+  [MSSQL_SwimClubMeet]
+
+  Database=SwimClubMeet
+  DriverID=MSSQL
+  ApplicationName=SwimClubMeet
+  MetaDefSchema=dbo
+  OSAuthent=Yes
+  Server=localhost\SQLEXPRESS
+  Workstation=localhost\SQLEXPRESS
+
+  --------------------------------------------------------------------------
+
+  Local IIS directory = %WEBSITE%\%WEBSITE-CGI%\ or localHost\%wwwRoot%\CGI\
+  AppData =  %SYSTEMDRIVE%:\Users\%USERNAME%\AppData\Roaming\Artanemus\SCM\
+  Configuration filename = 'SCM_RESTConfig.ini'
+
+  --------------------------------------------------------------------------
+
+*)
+
+procedure TscmWeb.WebModuleCreate(Sender: TObject);
+var
+  rootDir, fn: string;
+begin
+
+  if (scmConnection.Connected) then
+    scmConnection.Close;
+
+  // A - locate the configuration file in CGI-bin
+  fn := '.' + PathDelim + SCMCONFIGFILENAME;
+  if FileExists(fn) then
+    ConnectToIniFile(fn);
+
+  // B - locate the configuration file in user::appData
+  if not scmConnection.Connected then
+  begin
+    rootDir := Utility.GetSCMAppDataDir;
+    if (Length(rootDir) > 0) then
+    begin
+      fn := rootDir + SCMCONFIGFILENAME;
+      if FileExists(fn) then
+        ConnectToIniFile(fn);
+    end;
+  end;
+
+  // C - attempt a default cpnnection ....
+  if not scmConnection.Connected then
+  begin
+    MakeTemporyFDConnection('localHost\SQLEXPRESS:8080', '', '', true);
+  end;
+
+  // ASSERT TABLE.QUERY CONNECTIONS
+  if scmConnection.Connected then
+  begin
+    qrySession.Active := true;
+    qryEvent.Active := true;
+    qryHeat.Active := true;
+  end
+  else
+  begin
+    Response.StatusCode := 404; // not found (connection)
+    Response.ReasonString :=
+      'Bad or missing SCM_RESTConfig.ini file. Couldn''t connect.';
+    Response.SendResponse;
+  end;
+end;
+
+procedure TscmWeb.MakeTemporyFDConnection(Server, User, Password: string;
+  OsAuthent: Boolean);
+var
+  Value: string;
+begin
+  if (scmConnection.Connected) then
+  begin
+    scmConnection.Close;
+  end;
+  scmConnection.Params.Add('Server=' + Server);
+  scmConnection.Params.Add('DriverID=MSSQL');
+  scmConnection.Params.Add('Database=SwimClubMeet');
+  scmConnection.Params.Add('User_name=' + User);
+  scmConnection.Params.Add('Password=' + Password);
+  if (OsAuthent) then
+    Value := 'Yes'
+  else
+    Value := 'No';
+  scmConnection.Params.Add('OSAuthent=' + Value);
+  scmConnection.Params.Add('Mars=yes');
+  scmConnection.Params.Add('MetaDefSchema=dbo');
+  scmConnection.Params.Add('ExtendedMetadata=False');
+  scmConnection.Params.Add('ApplicationName=scmTimeKeeper');
+
+  scmConnection.Open;
+
+end;
+
+procedure TscmWeb.ConnectToIniFile(fn: string);
+var
+  ini: TIniFile;
+  Server, User, passwd, s: string;
+  osAuth: Boolean;
+const
+  Section = 'MSSQL_SwimClubMeet';
+begin
+  begin
+    ini := TIniFile.Create(fn);
+    try
+      Server := ini.ReadString(Section, 'Server', '');
+      User := ini.ReadString(Section, 'User', '');
+      passwd := ini.ReadString(Section, 'Password', '');
+      s := ini.ReadString(Section, 'OSAuthent', 'No');
+      s := LeftStr(UpperCase(s), 1);
+      if (s = 'N') or (s = 'F') then
+        osAuth := False
+      else
+        osAuth := true;
+    finally
+      ini.Free;
+    end;
+    MakeTemporyFDConnection(Server, User, passwd, osAuth);
+  end;
 end;
 
 end.
