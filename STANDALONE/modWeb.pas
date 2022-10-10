@@ -247,6 +247,8 @@ begin
             .AsInteger));
           o.AddPair('HeatNum', TJSONNumber.Create(qryHeat.FieldByName('HeatNum')
             .AsInteger));
+          o.AddPair('Lane', TJSONNumber.Create(qryHeat.FieldByName('Lane')
+            .AsInteger));
           o.AddPair('FName', TJSONString.Create(qryHeat.FieldByName('FName')
             .AsString));
           o.AddPair('RaceTime',

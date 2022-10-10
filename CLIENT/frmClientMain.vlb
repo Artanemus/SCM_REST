@@ -8,11 +8,8 @@ Coordinates=140,210,49,33
 [HeaderLabel]
 Coordinates=30,530,76,51
 
-[Footer]
-Coordinates=140,170,46,33
-
 []
-Coordinates=410,230,70,51
+Coordinates=140,170,46,33
 Visible=True
 
 [BindingsList1]
@@ -92,15 +89,6 @@ Coordinates=768,1,156,33
 
 [BindSourceEv]
 Coordinates=630,580,84,141
-
-[btnSession]
-Coordinates=130,530,69,51
-
-[btnEvent]
-Coordinates=81,162,58,51
-
-[btnHeat]
-Coordinates=22,162,52,51
 
 [DSHeats]
 Coordinates=91,281,56,33
