@@ -27,8 +27,9 @@
 #
 
 # Delphi compiler-generated binaries (safe to delete)
-*.exe
-# *.dll
+# ALLOW EXECUTABLES
+# *.exe - STANDALONE AND DEMO
+# *.dll - REST ISAPI
 *.bpl
 *.bpi
 *.dcp
