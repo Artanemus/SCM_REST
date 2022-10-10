@@ -6,7 +6,7 @@
         <Projects Include="STANDALONE\SCM_REST_StandAlone.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="ISAP\SCM_REST.dproj">
+        <Projects Include="IISAPI\SCM_REST.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="CLIENT\SCM_Client.dproj">
@@ -30,13 +30,13 @@
         <MSBuild Projects="STANDALONE\SCM_REST_StandAlone.dproj" Targets="Make"/>
     </Target>
     <Target Name="SCM_REST">
-        <MSBuild Projects="ISAP\SCM_REST.dproj"/>
+        <MSBuild Projects="IISAPI\SCM_REST.dproj"/>
     </Target>
     <Target Name="SCM_REST:Clean">
-        <MSBuild Projects="ISAP\SCM_REST.dproj" Targets="Clean"/>
+        <MSBuild Projects="IISAPI\SCM_REST.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SCM_REST:Make">
-        <MSBuild Projects="ISAP\SCM_REST.dproj" Targets="Make"/>
+        <MSBuild Projects="IISAPI\SCM_REST.dproj" Targets="Make"/>
     </Target>
     <Target Name="SCM_Client">
         <MSBuild Projects="CLIENT\SCM_Client.dproj"/>

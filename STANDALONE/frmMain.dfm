@@ -1,9 +1,9 @@
 object Main: TMain
   Left = 271
   Top = 114
-  Caption = 'Main'
-  ClientHeight = 235
-  ClientWidth = 399
+  Caption = 'SCM_REST StandAlone'
+  ClientHeight = 160
+  ClientWidth = 321
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -58,7 +58,7 @@ object Main: TMain
   end
   object ApplicationEvents1: TApplicationEvents
     OnIdle = ApplicationEvents1Idle
-    Left = 288
-    Top = 24
+    Left = 240
+    Top = 48
   end
 end
